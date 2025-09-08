@@ -2,12 +2,13 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
 
+using OrderRequestQueueProcessor.Logging;
 namespace OrderRequestQueueProcessor.Models
 {
     public class OrderRequestDto
     {
         [JsonProperty("orq_id")]
-        public int Id { get; set; }  // ORQ_ID
+        public decimal Id { get; set; }  // ORQ_ID
 
         [JsonProperty("orq_portal_request_id")]
         public int? PortalRequestId { get; set; }  // ORQ_PORTAL_REQUEST_ID

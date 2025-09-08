@@ -1,9 +1,10 @@
 ﻿using OrderRequestQueueProcessor.Models;
 
+using OrderRequestQueueProcessor.Logging;
 namespace OrderRequestQueueProcessor.Services
 {
     public interface IOrderRequestService
     {
-        Task<long> CreateOrderRequestAsync(OrderRequestDto dto, CancellationToken cancellationToken);
+        Task<decimal?> CreateOrderRequestAsync(OrderRequestDto dto, CancellationToken cancellationToken);
     }
 }

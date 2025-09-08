@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OrderRequestQueueProcessor.Models;
 
+using OrderRequestQueueProcessor.Logging;
 namespace OrderRequestQueueProcessor.Data
 {
     public class OrderRequestDbContext : DbContext
@@ -26,6 +27,7 @@ namespace OrderRequestQueueProcessor.Data
 
                 entity.Property(e => e.Id)
                       .HasColumnName("ORQ_ID")
+                      .HasColumnType("NUMBER(38,0)")
                       .ValueGeneratedOnAdd();
 
                 entity.Property(e => e.PortalRequestId)
@@ -66,7 +68,8 @@ namespace OrderRequestQueueProcessor.Data
                 entity.HasKey(e => new { e.OrderRequestId, e.LineNo });
 
                 entity.Property(e => e.OrderRequestId)
-                      .HasColumnName("ORQL_ORQ_ID");
+                      .HasColumnName("ORQL_ORQ_ID")
+                        .HasColumnType("NUMBER(38,0)");
                 entity.Property(e => e.LineNo)
                         .HasColumnName("ORQL_LINE_NO");
                 entity.Property(e => e.ProductId)

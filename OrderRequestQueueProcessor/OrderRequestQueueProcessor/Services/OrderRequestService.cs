@@ -1,7 +1,12 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using OrderRequestQueueProcessor.Data;
 using OrderRequestQueueProcessor.Models;
-
+using OrderRequestQueueProcessor.Logging;
 
 namespace OrderRequestQueueProcessor.Services
 {
@@ -12,14 +17,20 @@ namespace OrderRequestQueueProcessor.Services
 
         public OrderRequestService(OrderRequestDbContext dbContext, ILogger<OrderRequestService> logger)
         {
+            Console.WriteLine("[OrderRequestService.cs] ENTER OrderRequestService()");
+
             _dbContext = dbContext;
             _logger = logger;
         }
 
-        public async Task<long> CreateOrderRequestAsync(OrderRequestDto dto, CancellationToken cancellationToken)
+        public async Task<decimal?> CreateOrderRequestAsync(OrderRequestDto dto, CancellationToken cancellationToken)
         {
+            const string component = "OrderRequestService";
+
+            await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
             try
             {
+                // Map header + lines
                 var entity = new OrderRequestDto
                 {
                     AccountId = dto.AccountId,
@@ -36,6 +47,7 @@ namespace OrderRequestQueueProcessor.Services
 
                     OrderRequestLines = dto.OrderRequestLines.Select(line => new OrderRequestLineDto
                     {
+                        // If your FK is set via the navigation, OrderRequestId can be omitted.
                         OrderRequestId = line.OrderRequestId,
                         LineNo = line.LineNo,
                         ProductId = line.ProductId,
@@ -49,14 +61,17 @@ namespace OrderRequestQueueProcessor.Services
                 _dbContext.OrderRequests.Add(entity);
                 await _dbContext.SaveChangesAsync(cancellationToken);
 
-                _logger.LogInformation("OrderRequest created with ID {Id}", entity.Id);
+                await transaction.CommitAsync(cancellationToken);
 
+                _logger.LogInfo(component, "OrderRequest created with ID {Id}", entity.Id);
                 return entity.Id;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to create OrderRequest");
-                throw;
+                try { await transaction.RollbackAsync(cancellationToken); } catch { }
+                Console.WriteLine("[OrderRequestService.cs] CATCH -> " + (ex?.Message ?? "no message"));
+                _logger.LogFailure(component, "Failed to create OrderRequest: {Error}", ex.Message);
+                return null;
             }
         }
     }

@@ -9,9 +9,13 @@ using OrderRequestQueueProcessor.Services;
 using Serilog;
 using Microsoft.EntityFrameworkCore;
 
+Serilog.Debugging.SelfLog.Enable(Console.Error);
 
 Log.Logger = new LoggerConfiguration()
-    .ReadFrom.Configuration(new ConfigurationBuilder()
+    .Enrich.WithProperty("Application", "OrderRequestQueueProcessor")
+    .Enrich.WithProperty("Type", "Info")
+    .Enrich.WithProperty("Module", "General")
+    .Enrich.WithProperty("Application", "OrderRequestQueueProcessor").Enrich.FromLogContext().Enrich.WithProperty("Application","OrderRequestQueueProcessor").Enrich.WithProperty("Type","Info").Enrich.WithProperty("Module","General").ReadFrom.Configuration(new ConfigurationBuilder()
         .AddJsonFile("appsettings.json", optional: false)
         .Build())
     .Enrich.FromLogContext()
@@ -22,25 +26,25 @@ try
     Log.Information("Starting OrderRequestQueueProcessor host...");
 
     var host = Host.CreateDefaultBuilder(args)
-        .UseSerilog() // 👈 Hook Serilog into the host
+        .UseSerilog()
         .ConfigureServices((context, services) =>
         {
             services.Configure<AppSettings>(context.Configuration.GetSection("AppSettings"));
 
             services.AddSingleton<IQueueRepository, OracleQueueRepository>();
-            services.AddSingleton<IOrderRequestHandler, OrderRequestHandler>();
+            services.AddScoped<IOrderRequestHandler, OrderRequestHandler>();
             services.AddHostedService<QueueProcessingService>();
             services.AddDbContext<OrderRequestDbContext>((sp, options) =>
             {
                 var appSettings = sp.GetRequiredService<IOptions<AppSettings>>().Value;
-                options.UseOracle(appSettings.OracleConnectionString); // this should compile now
+                options.UseOracle(appSettings.OracleConnectionString);
             });
             services.AddScoped<IOrderRequestService, OrderRequestService>();
 
         })
         .Build();
 
-    await host.RunAsync();
+await host.RunAsync();
 }
 catch (Exception ex)
 {

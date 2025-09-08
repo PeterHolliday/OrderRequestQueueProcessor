@@ -1,5 +1,6 @@
 ﻿using OrderRequestQueueProcessor.Models;
 
+using OrderRequestQueueProcessor.Logging;
 namespace OrderRequestQueueProcessor.Data
 {
     public interface IQueueRepository
@@ -14,16 +15,16 @@ namespace OrderRequestQueueProcessor.Data
         /// <summary>
         /// Marks a request as completed.
         /// </summary>
-        Task MarkAsCompletedAsync(long id, CancellationToken cancellationToken);
+        Task MarkAsCompletedAsync(Guid id, CancellationToken cancellationToken);
 
         /// <summary>
         /// Increments retry count and sets error message. Does not dead-letter directly.
         /// </summary>
-        Task IncrementRetryAsync(long id, string errorMessage, CancellationToken cancellationToken);
+        Task IncrementRetryAsync(Guid id, string errorMessage, CancellationToken cancellationToken);
 
         /// <summary>
         /// Marks a queue item as permanently failed (dead-letter).
         /// </summary>
-        Task MarkAsDeadLetterAsync(long id, string reason, CancellationToken cancellationToken);
+        Task MarkAsDeadLetterAsync(Guid id, string reason, CancellationToken cancellationToken);
     }
 }

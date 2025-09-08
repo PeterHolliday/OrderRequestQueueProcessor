@@ -1,11 +1,12 @@
 ﻿using Newtonsoft.Json;
 
+using OrderRequestQueueProcessor.Logging;
 namespace OrderRequestQueueProcessor.Models
 {
     public class OrderRequestLineDto
     {
         [JsonProperty("orql_orq_id")]
-        public int? OrderRequestId { get; set; }  // ORQL_ORQ_ID
+        public decimal OrderRequestId { get; set; }  // ORQL_ORQ_ID
 
         [JsonProperty("orql_line_no")]
         public int? LineNo { get; set; }  // ORQL_LINE_NO
